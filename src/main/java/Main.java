@@ -21,6 +21,10 @@ public class Main {
             saveButton.addActionListener(e -> canvas.saveToPNG());
             toolbar.add(saveButton);
 
+            JButton openButton = new JButton("Відкрити");
+            openButton.addActionListener(e -> {canvas.openFromPNG();});
+            toolbar.add(openButton);
+
             JButton clearButton = new JButton("Очистити");
             clearButton.addActionListener(e -> canvas.clearCanvas());
             toolbar.add(clearButton);
