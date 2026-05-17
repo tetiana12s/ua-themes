@@ -1,0 +1,128 @@
+import javax.swing.JPanel;
+import javax.swing.Timer;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Color;
+import java.awt.BasicStroke;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class EmbroideryCanvas extends JPanel {
+
+    private static class Stitch {
+        int gridX, gridY;
+        Color color;
+
+        public Stitch(int gridX, int gridY, Color color) {
+            this.gridX = gridX;
+            this.gridY = gridY;
+            this.color = color;
+        }
+    }
+
+    private final int CELL_SIZE = 25;
+    private List<Stitch> allStitches = new ArrayList<>();
+    private List<Stitch> drawnStitches = new ArrayList<>();
+    private Timer timer;
+
+    public EmbroideryCanvas() {
+        String[] patternMap = {
+                "      R      ",
+                "     R R     ",
+                "  R  RBR  R  ",
+                "   RR B RR   ",
+                " RR B R B RR ",
+                "   RR B RR   ",
+                "  R  RBR  R  ",
+                "     R R     ",
+                "      R      "
+        };
+
+        parsePattern(patternMap);
+        Collections.shuffle(allStitches);
+        startEmbroideryAnimation();
+    }
+
+    private void parsePattern(String[] map) {
+        for (int row = 0; row < map.length; row++) {
+            String line = map[row];
+            for (int col = 0; col < line.length(); col++) {
+                char symbol = line.charAt(col);
+                if (symbol == 'R') {
+                    allStitches.add(new Stitch(col, row, Color.RED));
+                } else if (symbol == 'B') {
+                    allStitches.add(new Stitch(col, row, Color.BLACK));
+                }
+            }
+        }
+    }
+
+    private void startEmbroideryAnimation() {
+        timer = new Timer(30, new ActionListener() {
+            int currentIndex = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentIndex< allStitches.size()) {
+                    drawnStitches.add(allStitches.get(currentIndex));
+                    currentIndex++;
+                    repaint();
+                } else {
+                    timer.stop();
+                }
+            }
+        });
+        timer.start();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+
+        g2.setColor(new Color(240, 242, 245));
+        g2.fillRect(0, 0, getWidth(), getHeight());
+
+        int gridCols = 41;
+        int gridRows = 30;
+
+        int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
+        int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
+
+        if (offsetX < 0) offsetX = 0;
+        if (offsetY < 0) offsetY = 0;
+
+        g2.setColor(Color.WHITE);
+        g2.fillRect(offsetX, offsetY, gridCols * CELL_SIZE, gridRows * CELL_SIZE);
+
+        g2.setColor(new Color(215, 215, 215));
+        g2.setStroke(new BasicStroke(1));
+        g2.drawRect(offsetX, offsetY, gridCols * CELL_SIZE, gridRows * CELL_SIZE);
+
+        g2.setColor(Color.LIGHT_GRAY);
+
+        for (int i = 0; i <= gridRows; i++) {
+            g2.drawLine(offsetX, offsetY + i * CELL_SIZE, offsetX + gridCols * CELL_SIZE, offsetY + i * CELL_SIZE);
+        }
+
+        for (int j = 0; j <= gridCols; j++) {
+            g2.drawLine(offsetX + j * CELL_SIZE, offsetY, offsetX + j * CELL_SIZE, offsetY + gridRows * CELL_SIZE);
+        }
+
+        g2.setStroke(new BasicStroke(3));
+
+        for (Stitch stitch : drawnStitches) {
+            g2.setColor(stitch.color);
+            drawCross(g2, stitch.gridX * CELL_SIZE + offsetX, stitch.gridY * CELL_SIZE + offsetY);
+        }
+    }
+
+    private void drawCross(Graphics2D g2, int x, int y) {
+        int padding = 4;
+        g2.drawLine(x + padding, y + padding, x + CELL_SIZE - padding, y + CELL_SIZE - padding);
+        g2.drawLine(x + CELL_SIZE - padding, y + padding, x + padding, y + CELL_SIZE - padding);
+    }
+}
