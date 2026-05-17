@@ -9,6 +9,13 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class EmbroideryCanvas extends JPanel {
 
@@ -137,5 +144,47 @@ public class EmbroideryCanvas extends JPanel {
         int padding = 4;
         g2.drawLine(x + padding, y + padding, x + CELL_SIZE - padding, y + CELL_SIZE - padding);
         g2.drawLine(x + CELL_SIZE - padding, y + padding, x + padding, y + CELL_SIZE - padding);
+    }
+
+    public void clearCanvas() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+
+        allStitches.clear();
+        drawnStitches.clear();
+
+        repaint();
+    }
+
+    public void saveToPNG() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Зберегти вишивку як PNG");
+
+        FileNameExtensionFilter filter = new  FileNameExtensionFilter("Зображення PNG", "png");
+        fileChooser.setFileFilter(filter);
+
+        int userSelection = fileChooser.showSaveDialog(this);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+
+            if (!fileToSave.getAbsolutePath().toLowerCase().endsWith(".png")) {
+                fileToSave = new File(fileToSave.getAbsoluteFile() + ".png");
+            }
+
+            BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = image.createGraphics();
+
+            paint(g2);
+            g2.dispose();
+
+            try {
+                ImageIO.write(image, "png", fileToSave);
+                JOptionPane.showMessageDialog(this, "Вишивку успішно збережено!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this, "Помилка при збережені файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }

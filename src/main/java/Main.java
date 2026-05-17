@@ -11,13 +11,19 @@ public class Main {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLayout(new BorderLayout());
 
+            // Створюємо полотно для малювання
+            EmbroideryCanvas canvas  = new EmbroideryCanvas();
+
             JPanel toolbar = new JPanel();
             toolbar.setBackground(Color.lightGray);
-            toolbar.add(new JButton("Зберегти"));
-            toolbar.add(new JButton("Очистити"));
 
-            // Створюємо наше полотно для малювання
-            EmbroideryCanvas canvas  = new EmbroideryCanvas();
+            JButton saveButton = new JButton("Зберегти");
+            saveButton.addActionListener(e -> canvas.saveToPNG());
+            toolbar.add(saveButton);
+
+            JButton clearButton = new JButton("Очистити");
+            clearButton.addActionListener(e -> canvas.clearCanvas());
+            toolbar.add(clearButton);
 
             frame.add(toolbar, BorderLayout.NORTH);
             frame.add(canvas, BorderLayout.CENTER);
