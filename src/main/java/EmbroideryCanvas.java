@@ -30,15 +30,28 @@ public class EmbroideryCanvas extends JPanel {
 
     public EmbroideryCanvas() {
         String[] patternMap = {
-                "      R      ",
-                "     R R     ",
-                "  R  RBR  R  ",
-                "   RR B RR   ",
-                " RR B R B RR ",
-                "   RR B RR   ",
-                "  R  RBR  R  ",
-                "     R R     ",
-                "      R      "
+                "                                         ",
+                "                                         ",
+                "                                         ",
+                "                    R                    ",
+                "                   RRR                   ",
+                "             RRR  RR RR  RRR             ",
+                "             RR    BBB    RR             ",
+                "             R R B BRB B R R             ",
+                "                B R R R B                ",
+                "               B RRRRRRR B               ",
+                "             R  RR BBB RR  R             ",
+                "            RBBB RB B BR BBBR            ",
+                "           RR BRRRBB BBRR B RR           ",
+                "            RBBB RB B BR BBBR            ",
+                "            R  RR  BBB RR  R             ",
+                "               B RRRRRRR B               ",
+                "                B R R R B                ",
+                "             R R B BRB B R R             ",
+                "             RR    BBB    RR             ",
+                "             RRR  RR RR  RRR             ",
+                "                   RRR                   ",
+                "                    R                    ",
         };
 
         parsePattern(patternMap);
