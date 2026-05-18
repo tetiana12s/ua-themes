@@ -360,7 +360,20 @@ public class EmbroideryCanvas extends JPanel {
                                 int newY = s.gridY - currentMouseGridY +  offestY;
 
                                 if (newX < gridCols && newY < gridRows) {
-                                    drawnStitches.add(new Stitch(newX, newY, s.color));
+                                    addSingleStich(newX, newY, s.color);
+
+                                    int mirroredNewY = (gridRows - 1) - newY;
+                                    int mirroredNewX = (gridCols - 1) - newX;
+
+                                    if (symmetryMode.equals("По горизонталі") || symmetryMode.equals("Чотиристороння")) {
+                                        addSingleStich(newX, mirroredNewY, s.color);
+                                    }
+                                    if (symmetryMode.equals("По вертикалі") || symmetryMode.equals("Чотиристороння")) {
+                                        addSingleStich(mirroredNewX, newY, s.color);
+                                    }
+                                    if (symmetryMode.equals("Чотиристороння")) {
+                                        addSingleStich(mirroredNewX, mirroredNewY, s.color);
+                                    }
                                 }
                             }
                         }
