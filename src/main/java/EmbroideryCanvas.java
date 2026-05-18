@@ -39,6 +39,7 @@ public class EmbroideryCanvas extends JPanel {
     private Timer timer;
 
     private Color currentColor = Color.RED;
+    private String symmetryMode = "Без симетрії";
 
     public void chooseColor() {
         Color selectedColor =  JColorChooser.showDialog(this, "Оберіть колір нитки", currentColor);
@@ -47,8 +48,14 @@ public class EmbroideryCanvas extends JPanel {
         }
     }
 
+    public void setSymmetryMode(String symmetryMode) {
+        this.symmetryMode = symmetryMode;
+    }
+
     public EmbroideryCanvas() {
         String[] patternMap = {
+                "                                         ",
+                "                                         ",
                 "                                         ",
                 "                                         ",
                 "                                         ",
@@ -126,7 +133,7 @@ public class EmbroideryCanvas extends JPanel {
         g2.fillRect(0, 0, getWidth(), getHeight());
 
         int gridCols = 41;
-        int gridRows = 30;
+        int gridRows = 29;
 
         int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
         int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
@@ -223,7 +230,7 @@ public class EmbroideryCanvas extends JPanel {
                 BufferedImage image = ImageIO.read(fileToOpen);
 
                 int gridCols = 41;
-                int gridRows = 30;
+                int gridRows = 29;
 
                 int canvasX = -1;
                 int canvasY = -1;
@@ -281,7 +288,7 @@ public class EmbroideryCanvas extends JPanel {
 
     private void handleMouseClick(MouseEvent e) {
         int gridCols = 41;
-        int gridRows = 30;
+        int gridRows = 29;
 
         int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
         int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
@@ -293,12 +300,44 @@ public class EmbroideryCanvas extends JPanel {
         int row = (e.getY() - offsetY) / CELL_SIZE;
 
         if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
-            drawnStitches.removeIf(stitch -> stitch.gridX == col && stitch.gridY == row);
+            int mirroredRow = (gridRows - 1) - row;
+            int mirroredCol = (gridCols - 1) - col;
 
             if (e.getButton() == MouseEvent.BUTTON1) {
-                drawnStitches.add(new Stitch(col, row, currentColor));
+                addSingleStich(col, row, currentColor);
+
+                if (symmetryMode.equals("По горизонталі") || symmetryMode.equals("Чотиристороння")) {
+                    addSingleStich(col, mirroredRow, currentColor);
+                }
+                if (symmetryMode.equals("По вертикалі") || symmetryMode.equals("Чотиристороння")) {
+                    addSingleStich(mirroredCol, row, currentColor);
+                }
+                if (symmetryMode.equals("Чотиристороння")) {
+                    addSingleStich(mirroredCol, mirroredRow, currentColor);
+                }
+            } else if (e.getButton() == MouseEvent.BUTTON3) {
+                removeSingleStich(col, row);
+
+                if (symmetryMode.equals("По горизонталі") || symmetryMode.equals("Чотиристороння")) {
+                    removeSingleStich(col, mirroredRow);
+                }
+                if (symmetryMode.equals("По вертикалі") || symmetryMode.equals("Чотиристороння")) {
+                    removeSingleStich(mirroredCol, row);
+                }
+                if (symmetryMode.equals("Чотиристороння")) {
+                    removeSingleStich(mirroredCol, mirroredRow);
+                }
             }
             repaint();
         }
+    }
+
+    private void addSingleStich(int col, int row, Color color) {
+        drawnStitches.removeIf(stitch -> stitch.gridX == col && stitch.gridY == row);
+        drawnStitches.add(new Stitch(col, row, color));
+    }
+
+    private void removeSingleStich(int col, int row) {
+        drawnStitches.removeIf(stitch -> stitch.gridX == col && stitch.gridY == row);
     }
 }

@@ -14,8 +14,10 @@ public class Main {
             // Створюємо полотно для малювання
             EmbroideryCanvas canvas  = new EmbroideryCanvas();
 
-            JPanel toolbar = new JPanel();
-            toolbar.setBackground(Color.lightGray);
+            JToolBar toolbar = new JToolBar();
+            toolbar.setFloatable(false);
+            toolbar.setBackground(new Color(235, 237, 240));
+            toolbar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
             JButton saveButton = new JButton("Зберегти");
             saveButton.addActionListener(e -> canvas.saveToPNG());
@@ -25,9 +27,29 @@ public class Main {
             openButton.addActionListener(e -> {canvas.openFromPNG();});
             toolbar.add(openButton);
 
+            toolbar.addSeparator(new Dimension(15, 0));
+
             JButton colorButton = new JButton("Палітра");
             colorButton.addActionListener(e -> canvas.chooseColor());
             toolbar.add(colorButton);
+
+            toolbar.addSeparator(new Dimension(15, 0));
+
+            JLabel symmetryLabel = new JLabel("Симетрія: ");
+            symmetryLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            toolbar.add(symmetryLabel);
+
+            String[] symmetryOptions = {"Без симетрії", "По горизонталі", "По вертикалі", "Чотиристороння"};
+            JComboBox<String> symmetryComboBox = new JComboBox<>(symmetryOptions);
+            symmetryComboBox.setMaximumSize(new Dimension(150, 30));
+
+            symmetryComboBox.addActionListener(e -> {
+                String celectedMode = (String) symmetryComboBox.getSelectedItem();
+                canvas.setSymmetryMode(celectedMode);
+            });
+            toolbar.add(symmetryComboBox);
+
+            toolbar.add(Box.createHorizontalGlue());
 
             JButton clearButton = new JButton("Очистити");
             clearButton.addActionListener(e -> canvas.clearCanvas());
