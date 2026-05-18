@@ -33,6 +33,10 @@ public class Main {
             colorButton.addActionListener(e -> canvas.chooseColor());
             toolbar.add(colorButton);
 
+            JButton duplicateButton = new JButton("Дублювати");
+            duplicateButton.addActionListener(e -> canvas.duplicateFragment());
+            toolbar.add(duplicateButton);
+
             toolbar.addSeparator(new Dimension(15, 0));
 
             JLabel symmetryLabel = new JLabel("Симетрія: ");

@@ -1,24 +1,17 @@
-import javax.swing.JPanel;
-import javax.swing.Timer;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.BasicStroke;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.JColorChooser;
 
 public class EmbroideryCanvas extends JPanel {
 
@@ -207,9 +200,11 @@ public class EmbroideryCanvas extends JPanel {
 
             try {
                 ImageIO.write(image, "png", fileToSave);
-                JOptionPane.showMessageDialog(this, "Вишивку успішно збережено!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Вишивку успішно збережено!",
+                        "Успіх", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Помилка при збережені файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Помилка при збережені файлу: "
+                        + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -248,7 +243,8 @@ public class EmbroideryCanvas extends JPanel {
                 }
 
                 if (canvasX == -1 || canvasY == -1) {
-                    JOptionPane.showMessageDialog(this, "Не вдалося розпізнати полотно вишивки на цій картинці.", "Помилка", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Не вдалося розпізнати полотно вишивки на цій картинці.",
+                            "Помилка", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
@@ -279,9 +275,11 @@ public class EmbroideryCanvas extends JPanel {
                 drawnStitches.addAll(allStitches);
                 repaint();
 
-                JOptionPane.showMessageDialog(this, "Схему успішно завантажено на полотно!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Схему успішно завантажено на полотно!",
+                        "Успіх", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Помилка при читанні файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Помилка при читанні файлу: "
+                        + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -339,5 +337,75 @@ public class EmbroideryCanvas extends JPanel {
 
     private void removeSingleStich(int col, int row) {
         drawnStitches.removeIf(stitch -> stitch.gridX == col && stitch.gridY == row);
+    }
+
+    public void duplicateFragment() {
+        if (drawnStitches.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Полотно порожнє! Немає що дублювати.",
+                    "Повідомлення", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+
+        JSpinner widthSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 41, 1));
+        JSpinner heightSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 29, 1));
+
+        inputPanel.add(new JLabel("Ширина фрагмента (клітинок):"));
+        inputPanel.add(widthSpinner);
+        inputPanel.add(new JLabel("Висота фргмента (клітинок):"));
+        inputPanel.add(heightSpinner);
+
+        int result = JOptionPane.showConfirmDialog(this, inputPanel,
+                "Задайте розміри фрагмента орнаменту", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            int fragW = (int) widthSpinner.getValue();
+            int fragH = (int) heightSpinner.getValue();
+
+            int minX = Integer.MAX_VALUE;
+            int minY = Integer.MAX_VALUE;
+            for (Stitch s : drawnStitches) {
+                if (s.gridX < minX) minX = s.gridX;
+                if (s.gridY < minY) minY = s.gridY;
+            }
+
+            List<Stitch> baseFragment = new ArrayList<>();
+            for (Stitch s : drawnStitches) {
+                if (s.gridX >= minX && s.gridX < minX + fragW &&
+                    s.gridY >= minY && s.gridY < minY + fragH) {
+                    baseFragment.add(s);
+                }
+            }
+
+            if (baseFragment.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "У вказаних розмірах немає хрестиків для копіювання!",
+                        "Помилка", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            drawnStitches.clear();
+
+            int gridCols = 41;
+            int gridRows = 29;
+
+            int stepX = fragW;
+            int stepY = fragH;
+
+            for (int offestY = 0; offestY < gridRows; offestY += stepY) {
+                for (int  offestX = 0; offestX < gridCols; offestX += stepX) {
+
+                    for (Stitch s : baseFragment) {
+                        int newX = s.gridX - minX +  offestX;
+                        int newY = s.gridY - minY +  offestY;
+
+                        if (newX < gridCols && newY < gridRows) {
+                            drawnStitches.add(new Stitch(newX, newY, s.color));
+                        }
+                    }
+                }
+            }
+            repaint();
+        }
     }
 }
