@@ -25,6 +25,10 @@ public class Main {
             openButton.addActionListener(e -> {canvas.openFromPNG();});
             toolbar.add(openButton);
 
+            JButton colorButton = new JButton("Палітра");
+            colorButton.addActionListener(e -> canvas.chooseColor());
+            toolbar.add(colorButton);
+
             JButton clearButton = new JButton("Очистити");
             clearButton.addActionListener(e -> canvas.clearCanvas());
             toolbar.add(clearButton);

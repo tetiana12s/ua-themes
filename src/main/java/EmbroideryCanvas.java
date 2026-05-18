@@ -16,6 +16,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JColorChooser;
 
 public class EmbroideryCanvas extends JPanel {
 
@@ -34,6 +37,15 @@ public class EmbroideryCanvas extends JPanel {
     private List<Stitch> allStitches = new ArrayList<>();
     private List<Stitch> drawnStitches = new ArrayList<>();
     private Timer timer;
+
+    private Color currentColor = Color.RED;
+
+    public void chooseColor() {
+        Color selectedColor =  JColorChooser.showDialog(this, "Оберіть колір нитки", currentColor);
+        if (selectedColor != null) {
+            currentColor = selectedColor;
+        }
+    }
 
     public EmbroideryCanvas() {
         String[] patternMap = {
@@ -64,6 +76,13 @@ public class EmbroideryCanvas extends JPanel {
         parsePattern(patternMap);
         Collections.shuffle(allStitches);
         startEmbroideryAnimation();
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                handleMouseClick(e); //Використовую Moise Pressed, а не MouseClicked, бо це візуально швидше
+            }
+        });
     }
 
     private void parsePattern(String[] map) {
@@ -244,10 +263,8 @@ public class EmbroideryCanvas extends JPanel {
                         if (sampleX < image.getWidth() && sampleY < image.getHeight()) {
                             Color pixelColor = new Color(image.getRGB(sampleX, sampleY));
 
-                            if (pixelColor.getRed() > 200 && pixelColor.getGreen() < 50 && pixelColor.getBlue() < 50) {
-                                allStitches.add(new Stitch(col, row, Color.RED));
-                            } else if (pixelColor.getRed() < 50 && pixelColor.getGreen() < 50 && pixelColor.getBlue() < 50) {
-                                allStitches.add(new Stitch(col, row, Color.BLACK));
+                            if (pixelColor.getRed() < 245 || pixelColor.getGreen() < 245 || pixelColor.getBlue() < 245) {
+                                allStitches.add(new Stitch(col, row, pixelColor));
                             }
                         }
                     }
@@ -259,6 +276,29 @@ public class EmbroideryCanvas extends JPanel {
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Помилка при читанні файлу: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private void handleMouseClick(MouseEvent e) {
+        int gridCols = 41;
+        int gridRows = 30;
+
+        int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
+        int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
+
+        if (offsetX < 0) offsetX = 0;
+        if (offsetY < 0) offsetY = 0;
+
+        int col = (e.getX() - offsetX) / CELL_SIZE;
+        int row = (e.getY() - offsetY) / CELL_SIZE;
+
+        if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
+            drawnStitches.removeIf(stitch -> stitch.gridX == col && stitch.gridY == row);
+
+            if (e.getButton() == MouseEvent.BUTTON1) {
+                drawnStitches.add(new Stitch(col, row, currentColor));
+            }
+            repaint();
         }
     }
 }
