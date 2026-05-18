@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 public class EmbroideryCanvas extends JPanel {
 
@@ -27,12 +28,20 @@ public class EmbroideryCanvas extends JPanel {
     }
 
     private final int CELL_SIZE = 25;
+    private final int gridCols = 41;
+    private final int gridRows = 29;
     private List<Stitch> allStitches = new ArrayList<>();
     private List<Stitch> drawnStitches = new ArrayList<>();
     private Timer timer;
 
     private Color currentColor = Color.RED;
     private String symmetryMode = "Без симетрії";
+
+    private boolean isSelectingArea = false;    // Чи ми зараз у режимі вибору області для дублювання?
+    private int selectionWidth = 0;     // Задана ширина фрагмента
+    private int selectionHeight = 0;    // Задана висота фрагмента
+    private int currentMouseGridX = 0;  // Поточна координата миші на сітці
+    private int currentMouseGridY = 0;
 
     public void chooseColor() {
         Color selectedColor =  JColorChooser.showDialog(this, "Оберіть колір нитки", currentColor);
@@ -83,6 +92,23 @@ public class EmbroideryCanvas extends JPanel {
                 handleMouseClick(e); //Використовую Moise Pressed, а не MouseClicked, бо це візуально швидше
             }
         });
+
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if (isSelectingArea) {
+                    int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
+                    int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
+                    if (offsetX < 0) offsetX = 0;
+                    if (offsetY < 0) offsetY = 0;
+
+                    currentMouseGridX = (e.getX() - offsetX) /  CELL_SIZE;
+                    currentMouseGridY = (e.getY() - offsetY) /  CELL_SIZE;
+
+                    repaint();
+                }
+            }
+        });
     }
 
     private void parsePattern(String[] map) {
@@ -125,12 +151,8 @@ public class EmbroideryCanvas extends JPanel {
         g2.setColor(new Color(240, 242, 245));
         g2.fillRect(0, 0, getWidth(), getHeight());
 
-        int gridCols = 41;
-        int gridRows = 29;
-
         int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
         int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
-
         if (offsetX < 0) offsetX = 0;
         if (offsetY < 0) offsetY = 0;
 
@@ -152,10 +174,22 @@ public class EmbroideryCanvas extends JPanel {
         }
 
         g2.setStroke(new BasicStroke(3));
-
         for (Stitch stitch : drawnStitches) {
             g2.setColor(stitch.color);
             drawCross(g2, stitch.gridX * CELL_SIZE + offsetX, stitch.gridY * CELL_SIZE + offsetY);
+        }
+
+        if (isSelectingArea) {
+            // Рахуємо піксельні координати верхнього лівого кута рамки
+            int framePixelX = offsetX + currentMouseGridX * CELL_SIZE;
+            int framePixelY = offsetY + currentMouseGridY * CELL_SIZE;
+
+            g2.setColor(new Color(0, 0, 255, 64));  // Напівпрозорий синій колір
+            g2.fillRect(framePixelX, framePixelY, selectionWidth *  CELL_SIZE, selectionHeight * CELL_SIZE);
+
+            g2.setColor(Color.BLUE);
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRect(framePixelX, framePixelY, selectionWidth * CELL_SIZE, selectionHeight * CELL_SIZE);
         }
     }
 
@@ -285,8 +319,6 @@ public class EmbroideryCanvas extends JPanel {
     }
 
     private void handleMouseClick(MouseEvent e) {
-        int gridCols = 41;
-        int gridRows = 29;
 
         int offsetX = (getWidth() - (gridCols * CELL_SIZE)) / 2;
         int offsetY = (getHeight() - (gridRows * CELL_SIZE)) / 2;
@@ -298,6 +330,54 @@ public class EmbroideryCanvas extends JPanel {
         int row = (e.getY() - offsetY) / CELL_SIZE;
 
         if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
+
+            // СТАН 1: РЕЖИМ ВИБОРУ ОБЛАСТІ ДЛЯ ДУБЛЮВАННЯ
+            if (isSelectingArea) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    List<Stitch> baseFragment = new ArrayList<>();
+                    for (Stitch s : allStitches) {
+                        if (s.gridX >= currentMouseGridX && s.gridX < currentMouseGridX + selectionWidth &&
+                            s.gridY >= currentMouseGridY && s.gridY < currentMouseGridY + selectionHeight) {
+                            baseFragment.add(s);
+                        }
+                    }
+
+                    if (baseFragment.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "У вибраній зоні немає хрестиків для копіювання!",
+                                "Помилка", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    drawnStitches.clear();
+                    int stepX = selectionWidth;
+                    int stepY = selectionHeight;
+
+                    for (int offestY = 0; offestY < gridRows; offestY += stepY) {
+                        for (int  offestX = 0; offestX < gridCols; offestX += stepX) {
+
+                            for (Stitch s : baseFragment) {
+                                int newX = s.gridX - currentMouseGridX +  offestX;
+                                int newY = s.gridY - currentMouseGridY +  offestY;
+
+                                if (newX < gridCols && newY < gridRows) {
+                                    drawnStitches.add(new Stitch(newX, newY, s.color));
+                                }
+                            }
+                        }
+                    }
+
+                    isSelectingArea = false;
+                    repaint();
+                    JOptionPane.showMessageDialog(this, "Орнамент успішно продубльовано!");
+                    return;
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    // Якщо правий клік - відміняємо вибір
+                    isSelectingArea = false;
+                    repaint();
+                    return;
+                }
+            }
+
             int mirroredRow = (gridRows - 1) - row;
             int mirroredCol = (gridCols - 1) - col;
 
@@ -360,52 +440,13 @@ public class EmbroideryCanvas extends JPanel {
                 "Задайте розміри фрагмента орнаменту", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
-            int fragW = (int) widthSpinner.getValue();
-            int fragH = (int) heightSpinner.getValue();
+            selectionWidth = (int) widthSpinner.getValue();
+            selectionHeight = (int) heightSpinner.getValue();
 
-            int minX = Integer.MAX_VALUE;
-            int minY = Integer.MAX_VALUE;
-            for (Stitch s : drawnStitches) {
-                if (s.gridX < minX) minX = s.gridX;
-                if (s.gridY < minY) minY = s.gridY;
-            }
-
-            List<Stitch> baseFragment = new ArrayList<>();
-            for (Stitch s : drawnStitches) {
-                if (s.gridX >= minX && s.gridX < minX + fragW &&
-                    s.gridY >= minY && s.gridY < minY + fragH) {
-                    baseFragment.add(s);
-                }
-            }
-
-            if (baseFragment.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "У вказаних розмірах немає хрестиків для копіювання!",
-                        "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            drawnStitches.clear();
-
-            int gridCols = 41;
-            int gridRows = 29;
-
-            int stepX = fragW;
-            int stepY = fragH;
-
-            for (int offestY = 0; offestY < gridRows; offestY += stepY) {
-                for (int  offestX = 0; offestX < gridCols; offestX += stepX) {
-
-                    for (Stitch s : baseFragment) {
-                        int newX = s.gridX - minX +  offestX;
-                        int newY = s.gridY - minY +  offestY;
-
-                        if (newX < gridCols && newY < gridRows) {
-                            drawnStitches.add(new Stitch(newX, newY, s.color));
-                        }
-                    }
-                }
-            }
+            isSelectingArea = true;
             repaint();
+
+            JOptionPane.showMessageDialog(this, "Тепер виберіть мишкою місце на полотні для дублювання і клікніть лівою кнопкою.");
         }
     }
 }
