@@ -35,6 +35,7 @@ public class EmbroideryCanvas extends JPanel {
     private final int gridRows = 29;
     private List<Stitch> allStitches = new ArrayList<>();
     private List<Stitch> drawnStitches = new ArrayList<>();
+    private List<Integer> undoHistory = new ArrayList<>();
     private Timer timer;
 
     private Color currentColor = Color.RED;
@@ -241,6 +242,7 @@ public class EmbroideryCanvas extends JPanel {
 
         allStitches.clear();
         drawnStitches.clear();
+        undoHistory.clear();
 
         repaint();
     }
@@ -384,6 +386,7 @@ public class EmbroideryCanvas extends JPanel {
                     }
 
                     drawnStitches.clear();
+                    undoHistory.clear();
                     int stepX = selectionWidth;
                     int stepY = selectionHeight;
 
@@ -426,10 +429,13 @@ public class EmbroideryCanvas extends JPanel {
                 }
             }
 
+            // СТАН 2: РЕЖИМ СИМЕТРІЇ
             int mirroredRow = (gridRows - 1) - row;
             int mirroredCol = (gridCols - 1) - col;
 
             if (e.getButton() == MouseEvent.BUTTON1) {
+                int countBefore = drawnStitches.size();
+
                 addSingleStich(col, row, currentColor);
 
                 if (symmetryMode.equals("По горизонталі") || symmetryMode.equals("Чотиристороння")) {
@@ -440,6 +446,10 @@ public class EmbroideryCanvas extends JPanel {
                 }
                 if (symmetryMode.equals("Чотиристороння")) {
                     addSingleStich(mirroredCol, mirroredRow, currentColor);
+                }
+                int added = drawnStitches.size() - countBefore;
+                if (added > 0) {
+                    undoHistory.add(added);
                 }
             } else if (e.getButton() == MouseEvent.BUTTON3) {
                 removeSingleStich(col, row);
@@ -496,5 +506,22 @@ public class EmbroideryCanvas extends JPanel {
 
             JOptionPane.showMessageDialog(this, "Тепер виберіть мишкою місце на полотні для дублювання і клікніть лівою кнопкою.");
         }
+    }
+
+    public void undo() {
+        if (undoHistory.isEmpty() || drawnStitches.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Немає дій для скасування!",
+                    "Помилка", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int lastActionCount = undoHistory.remove(undoHistory.size() - 1);
+
+        for (int i = 0; i < lastActionCount; i++) {
+            if (!drawnStitches.isEmpty()) {
+                drawnStitches.remove(drawnStitches.size() - 1);
+            }
+        }
+        repaint();
     }
 }
