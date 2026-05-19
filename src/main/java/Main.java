@@ -35,12 +35,29 @@ public class Main {
 
             toolbar.addSeparator(new Dimension(15, 0));
 
+            JButton pickerButton = new JButton("Піпетка");
+            pickerButton.setFocusable(false);
+            pickerButton.setToolTipText("Узяти колір з полотна (Клавіша E");
+            pickerButton.addActionListener(e -> {
+                canvas.isColorPickerMode = true;
+                JOptionPane.showMessageDialog(frame, "Режим піпетки активовано! Клацніть на потрібний колір на полотні.");
+            });
+            toolbar.add(pickerButton);
+
             JButton colorButton = new JButton("Палітра");
             colorButton.setFocusable(false);
             colorButton.setToolTipText("Обрати колір нитки (Клавіша P)");
-            colorButton.setFocusable(false);
             colorButton.addActionListener(e -> canvas.chooseColor());
             toolbar.add(colorButton);
+
+            JButton fillButton = new JButton("Заливка");
+            fillButton.setFocusable(false);
+            fillButton.setToolTipText("Залити суміжну область обраним кольором (Клавіша F");
+            fillButton.addActionListener(e -> {
+                canvas.isBucketFillMode = true;
+                JOptionPane.showMessageDialog(frame, "Режим заливки активовано! Клацніть на область полотна.");
+            });
+            toolbar.add(fillButton);
 
             JButton duplicateButton = new JButton("Дублювати");
             duplicateButton.setFocusable(false);
@@ -87,6 +104,7 @@ public class Main {
 
             JComponent rootPane = frame.getRootPane();
 
+            // Ctrl + Z (Скасувати попередній крок)
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke
                     (java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_DOWN_MASK), "undoAction");
             rootPane.getActionMap().put("undoAction", new AbstractAction() {
@@ -96,6 +114,7 @@ public class Main {
                 }
             });
 
+            // Ctrl + S (Зберегти орнамент)
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                     .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK), "saveAction");
             rootPane.getActionMap().put("saveAction", new AbstractAction() {
@@ -105,6 +124,7 @@ public class Main {
                 }
             });
 
+            // Клавіша M (Увімкнути/вимкнути музику)
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                     .put(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0), "musicAction");
             rootPane.getActionMap().put("musicAction", new AbstractAction() {
@@ -114,6 +134,7 @@ public class Main {
                 }
             });
 
+            // Клавіша C (Очистити полотно)
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                     .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, 0), "clearAction");
             rootPane.getActionMap().put("clearAction", new AbstractAction() {
@@ -128,23 +149,35 @@ public class Main {
                 }
             });
 
+            // Клавіша ESC (Вимкнути режим рамки при дублюванні)
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                     .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "cancelSelection");
             rootPane.getActionMap().put("cancelSelection", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    // Просто вимикаємо режим вибору рамки, якщо він був активний
                     canvas.isSelectingArea = false;
                     canvas.repaint();
                 }
             });
 
+            // Клавіша P (Увімкнути палітру)
             rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                     .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, 0), "paletteAction");
             rootPane.getActionMap().put("paletteAction", new AbstractAction() {
                 @Override
-                public void actionPerformed(java.awt.event.ActionEvent e) {
+                public void actionPerformed(ActionEvent e) {
                     canvas.chooseColor();
+                }
+            });
+
+            // Клавіша F (Увімкнути заливку)
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, 0), "fillAction");
+            rootPane.getActionMap().put("fillAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    canvas.isBucketFillMode = true;
+                    JOptionPane.showMessageDialog(frame, "Режим заливки активовано! Клацніть на область полотна.");
                 }
             });
 
@@ -183,6 +216,17 @@ public class Main {
             rootPane.getActionMap().put("spaceDraw", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) { canvas.drawStitchAtKeyboardCursor(); }
+            });
+
+            // Клавіша E (Увімкнути піпетку)
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, 0), "pickerAction");
+            rootPane.getActionMap().put("pickerAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    canvas.isColorPickerMode = true;
+                    JOptionPane.showMessageDialog(frame, "Режим піпетки активовано! Клікніть на потрібний колір на сітці.");
+                }
             });
 
             frame.add(toolbar, BorderLayout.NORTH);

@@ -51,6 +51,9 @@ public class EmbroideryCanvas extends JPanel {
     private int keyboardCgriY = 0;
     private boolean showKeyboardCursor = false;
 
+    public boolean isBucketFillMode = false;    // Чи активний режим заливки
+    public boolean isColorPickerMode = false;
+
     private Clip audioClip;
 
     public void toggleMusic() {
@@ -382,6 +385,34 @@ public class EmbroideryCanvas extends JPanel {
 
         if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
 
+            if (isColorPickerMode && e.getButton() == MouseEvent.BUTTON1) {
+                Color pickedColor = getStitchColorAt(col, row);
+
+                if(pickedColor != null) {
+                    currentColor = pickedColor;
+                }
+                isColorPickerMode = false;
+                repaint();
+                return;
+            }
+
+            if (isBucketFillMode && e.getButton() == MouseEvent.BUTTON1) {
+                Color targetColor = getStitchColorAt(col, row);
+
+                // Фіксуємо кількість хрестиків до заливки для історії скасування (Undo)
+                int countBefore = drawnStitches.size();
+                floodFill(col, row, targetColor, currentColor);
+
+                int added = Math.abs(drawnStitches.size() - countBefore);
+                if  (added > 0) {
+                    undoHistory.add(added);
+                }
+
+                isBucketFillMode = false;
+                repaint();
+                return;
+            }
+
             // СТАН 1: РЕЖИМ ВИБОРУ ОБЛАСТІ ДЛЯ ДУБЛЮВАННЯ
             if (isSelectingArea) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -578,5 +609,40 @@ public class EmbroideryCanvas extends JPanel {
             undoHistory.add(added);
         }
         repaint();
+    }
+
+    public void floodFill(int col, int row, Color targetColor, Color replacementColor) {
+        // Перевірка меж сітки
+        if (col < 0 || col >= gridCols || row < 0 || row >= gridRows) return;
+
+        Color currentColorAtCell = getStitchColorAt(col,row);
+
+        if (!colorsMatch(currentColorAtCell, targetColor) ||
+                colorsMatch(currentColorAtCell, replacementColor)) return;
+
+        if (replacementColor == null) {
+            removeSingleStich(col, row);
+        } else {
+            addSingleStich(col, row, replacementColor);
+        }
+
+        // Рекурсивно викликаємо для 4-х сусідніх клітинок
+        floodFill(col + 1, row, targetColor, replacementColor);
+        floodFill(col - 1, row, targetColor, replacementColor);
+        floodFill(col, row + 1, targetColor, replacementColor);
+        floodFill(col, row - 1, targetColor, replacementColor);
+    }
+
+    private Color getStitchColorAt(int col, int row) {
+        return drawnStitches.stream()
+                .filter(s -> s.gridX == col && s.gridY == row)
+                .map(s -> s.color)
+                .findFirst().orElse(null);
+    }
+
+    private boolean colorsMatch(Color c1, Color c2) {
+        if (c1 == null && c2 == null) return true;
+        if (c1 == null || c2 == null) return false;
+        return c1.getRGB() == c2.getRGB();
     }
 }
