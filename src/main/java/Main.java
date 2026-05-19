@@ -35,6 +35,15 @@ public class Main {
 
             toolbar.addSeparator(new Dimension(15, 0));
 
+            JButton pickerButton = new JButton("Піпетка");
+            pickerButton.setFocusable(false);
+            pickerButton.setToolTipText("Узяти колір з полотна (Клавіша E");
+            pickerButton.addActionListener(e -> {
+                canvas.isColorPickerMode = true;
+                JOptionPane.showMessageDialog(frame, "Режим піпетки активовано! Клацніть на потрібний колір на полотні.");
+            });
+            toolbar.add(pickerButton);
+
             JButton colorButton = new JButton("Палітра");
             colorButton.setFocusable(false);
             colorButton.setToolTipText("Обрати колір нитки (Клавіша P)");
@@ -207,6 +216,17 @@ public class Main {
             rootPane.getActionMap().put("spaceDraw", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) { canvas.drawStitchAtKeyboardCursor(); }
+            });
+
+            // Клавіша E (Увімкнути піпетку)
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, 0), "pickerAction");
+            rootPane.getActionMap().put("pickerAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    canvas.isColorPickerMode = true;
+                    JOptionPane.showMessageDialog(frame, "Режим піпетки активовано! Клікніть на потрібний колір на сітці.");
+                }
             });
 
             frame.add(toolbar, BorderLayout.NORTH);

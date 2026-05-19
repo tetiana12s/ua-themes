@@ -52,6 +52,7 @@ public class EmbroideryCanvas extends JPanel {
     private boolean showKeyboardCursor = false;
 
     public boolean isBucketFillMode = false;    // Чи активний режим заливки
+    public boolean isColorPickerMode = false;
 
     private Clip audioClip;
 
@@ -383,6 +384,17 @@ public class EmbroideryCanvas extends JPanel {
         int row = (e.getY() - offsetY) / CELL_SIZE;
 
         if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
+
+            if (isColorPickerMode && e.getButton() == MouseEvent.BUTTON1) {
+                Color pickedColor = getStitchColorAt(col, row);
+
+                if(pickedColor != null) {
+                    currentColor = pickedColor;
+                }
+                isColorPickerMode = false;
+                repaint();
+                return;
+            }
 
             if (isBucketFillMode && e.getButton() == MouseEvent.BUTTON1) {
                 Color targetColor = getStitchColorAt(col, row);
