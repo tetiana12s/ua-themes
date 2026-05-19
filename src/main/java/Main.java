@@ -22,6 +22,7 @@ public class Main {
             toolbar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
             JButton saveButton = new JButton("Зберегти");
+            saveButton.setToolTipText("Зберегти вишивку як зображення PNG (Ctrl + S)");
             saveButton.addActionListener(e -> canvas.saveToPNG());
             toolbar.add(saveButton);
 
@@ -58,15 +59,18 @@ public class Main {
             toolbar.add(Box.createHorizontalGlue());
 
             JButton musicButton = new JButton("Музика");
+            musicButton.setToolTipText("Увімкнути або вимкнути музику (клавіша M)");
             musicButton.addActionListener(e -> canvas.toggleMusic());
             toolbar.add(musicButton);
 
             JButton undoButton = new JButton("Назад");
+            undoButton.setToolTipText("Скасувати останню дію (Ctrl + Z)");
             undoButton.addActionListener(e -> canvas.undo());
             toolbar.add(undoButton);
 
 
             JButton clearButton = new JButton("Очистити");
+            clearButton.setToolTipText("Очистити полотно (Клавіша C)");
             clearButton.addActionListener(e -> canvas.clearCanvas());
             toolbar.add(clearButton);
 
@@ -110,6 +114,17 @@ public class Main {
                         if (response == JOptionPane.YES_OPTION) {
                             canvas.clearCanvas();
                         }
+                }
+            });
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "cancelSelection");
+            rootPane.getActionMap().put("cancelSelection", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    // Просто вимикаємо режим вибору рамки, якщо він був активний
+                    canvas.isSelectingArea = false;
+                    canvas.repaint();
                 }
             });
 

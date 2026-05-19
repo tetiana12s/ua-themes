@@ -41,7 +41,7 @@ public class EmbroideryCanvas extends JPanel {
     private Color currentColor = Color.RED;
     private String symmetryMode = "Без симетрії";
 
-    private boolean isSelectingArea = false;    // Чи ми зараз у режимі вибору області для дублювання?
+    public boolean isSelectingArea = false;    // Чи ми зараз у режимі вибору області для дублювання?
     private int selectionWidth = 0;     // Задана ширина фрагмента
     private int selectionHeight = 0;    // Задана висота фрагмента
     private int currentMouseGridX = 0;  // Поточна координата миші на сітці
