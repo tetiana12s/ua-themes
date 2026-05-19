@@ -38,9 +38,15 @@ public class Main {
             JButton colorButton = new JButton("Палітра");
             colorButton.setFocusable(false);
             colorButton.setToolTipText("Обрати колір нитки (Клавіша P)");
-            colorButton.setFocusable(false);
             colorButton.addActionListener(e -> canvas.chooseColor());
             toolbar.add(colorButton);
+
+            JButton fillButton = new JButton("Заливка");
+            fillButton.addActionListener(e -> {
+                canvas.isBucketFillMode = true;
+                JOptionPane.showMessageDialog(frame, "Режим заливки активовано! Клацніть на область полотна.");
+            });
+            toolbar.add(fillButton);
 
             JButton duplicateButton = new JButton("Дублювати");
             duplicateButton.setFocusable(false);
