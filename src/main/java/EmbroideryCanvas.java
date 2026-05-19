@@ -41,11 +41,15 @@ public class EmbroideryCanvas extends JPanel {
     private Color currentColor = Color.RED;
     private String symmetryMode = "Без симетрії";
 
-    private boolean isSelectingArea = false;    // Чи ми зараз у режимі вибору області для дублювання?
+    public boolean isSelectingArea = false;    // Чи ми зараз у режимі вибору області для дублювання?
     private int selectionWidth = 0;     // Задана ширина фрагмента
     private int selectionHeight = 0;    // Задана висота фрагмента
     private int currentMouseGridX = 0;  // Поточна координата миші на сітці
     private int currentMouseGridY = 0;
+
+    private int keyboardCgriX = 0;
+    private int keyboardCgriY = 0;
+    private boolean showKeyboardCursor = false;
 
     private Clip audioClip;
 
@@ -226,6 +230,16 @@ public class EmbroideryCanvas extends JPanel {
             g2.setColor(Color.BLUE);
             g2.setStroke(new BasicStroke(2));
             g2.drawRect(framePixelX, framePixelY, selectionWidth * CELL_SIZE, selectionHeight * CELL_SIZE);
+        }
+
+        if (showKeyboardCursor) {
+            int cursorPixelX = offsetX + keyboardCgriX * CELL_SIZE;
+            int cursorPixelY = offsetY + keyboardCgriY * CELL_SIZE;
+
+            g2.setColor(Color.DARK_GRAY);
+            g2.setStroke(new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                    10.0f, new float[]{4.0f}, 0.0f));
+            g2.drawRect(cursorPixelX, cursorPixelY, CELL_SIZE, CELL_SIZE);
         }
     }
 
@@ -521,6 +535,47 @@ public class EmbroideryCanvas extends JPanel {
             if (!drawnStitches.isEmpty()) {
                 drawnStitches.remove(drawnStitches.size() - 1);
             }
+        }
+        repaint();
+    }
+
+    public void moveKeyboardCursor(int dx, int dy) {
+        showKeyboardCursor = true;
+
+        keyboardCgriX += dx;
+        keyboardCgriY += dy;
+
+        if (keyboardCgriX < 0) keyboardCgriX = 0;
+        if (keyboardCgriX >= gridCols)  keyboardCgriX = gridCols - 1;
+        if (keyboardCgriY < 0) keyboardCgriY = 0;
+        if (keyboardCgriY >= gridRows)  keyboardCgriY = gridRows - 1;
+
+        repaint();
+    }
+
+    public void drawStitchAtKeyboardCursor() {
+        if (!showKeyboardCursor) return;
+
+        int countBefore = drawnStitches.size();
+
+        int mirroredRow = (gridRows - 1) - keyboardCgriY;
+        int mirroredCol = (gridCols - 1) - keyboardCgriX;
+
+        addSingleStich(keyboardCgriX, keyboardCgriY, currentColor);
+
+        if (symmetryMode.equals("По горизонталі") || symmetryMode.equals("Чотиристороння")) {
+            addSingleStich(keyboardCgriX, mirroredRow, currentColor);
+        }
+        if (symmetryMode.equals("По вертикалі") || symmetryMode.equals("Чотиристороння")) {
+            addSingleStich(mirroredCol, keyboardCgriY, currentColor);
+        }
+        if (symmetryMode.equals("Чотиристороння")) {
+            addSingleStich(mirroredCol, mirroredRow, currentColor);
+        }
+
+        int added = drawnStitches.size() - countBefore;
+        if (added > 0) {
+            undoHistory.add(added);
         }
         repaint();
     }
