@@ -714,7 +714,7 @@ public class EmbroideryCanvas extends JPanel {
     }
 
     /** Допоміжний метод лінійного пошуку об'єктивного кольору хрестика в координатах сітки. */
-    private Color getStitchColorAt(int col, int row) {
+    Color getStitchColorAt(int col, int row) {
         return drawnStitches.stream()
                 .filter(s -> s.gridX == col && s.gridY == row)
                 .map(s -> s.color)
@@ -722,7 +722,7 @@ public class EmbroideryCanvas extends JPanel {
     }
 
     /** Порівнює колірні структури з урахуванням потенційних null-об'єктів фону. */
-    private boolean colorsMatch(Color c1, Color c2) {
+    boolean colorsMatch(Color c1, Color c2) {
         if (c1 == null && c2 == null) return true;
         if (c1 == null || c2 == null) return false;
         return c1.getRGB() == c2.getRGB();
