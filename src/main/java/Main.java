@@ -4,11 +4,22 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
+/**
+ * Головний інфраструктурний клас програми.
+ * Відповідає за ініціалізацію головного вікна додатка (JFrame), побудову
+ * верхньої панелі інструментів (JToolBar) та глобальну реєстрацію гарячих клавіш.
+ * * @author Солтис Тетяна
+ */
 public class Main {
 
+    /**
+     * Точка входу в програму. Запускає інтерфейс Swing в асинхронному
+     * безпечному потоці обробки подій.
+     */
     public static void main(String[] args) {
 
         SwingUtilities.invokeLater(() -> {
+            // Створення та базове налаштування головного контейнера (вікна)
             JFrame frame = new JFrame("Редактор орнаменту - виконала Солтис Тетяни");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLayout(new BorderLayout());
@@ -16,18 +27,21 @@ public class Main {
             // Створюємо полотно для малювання
             EmbroideryCanvas canvas  = new EmbroideryCanvas();
 
+            // --- НАЛАШТУВАННЯ ПАНЕЛІ ІНСТРУМЕНТІВ (JToolBar) ---
             JToolBar toolbar = new JToolBar();
             toolbar.setFloatable(false);
             toolbar.setFocusable(false);
             toolbar.setBackground(new Color(235, 237, 240));
             toolbar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
+            // Кнопка Експорту в PNG
             JButton saveButton = new JButton("Зберегти");
             saveButton.setFocusable(false);
             saveButton.setToolTipText("Зберегти вишивку як зображення PNG (Ctrl + S)");
             saveButton.addActionListener(e -> canvas.saveToPNG());
             toolbar.add(saveButton);
 
+            // Кнопка Імпорту з PNG
             JButton openButton = new JButton("Відкрити");
             openButton.setFocusable(false);
             openButton.addActionListener(e -> {canvas.openFromPNG();});
@@ -35,30 +49,34 @@ public class Main {
 
             toolbar.addSeparator(new Dimension(15, 0));
 
+            // Кнопка активації інструменту "Піпетка"
             JButton pickerButton = new JButton("Піпетка");
             pickerButton.setFocusable(false);
             pickerButton.setToolTipText("Узяти колір з полотна (Клавіша E");
             pickerButton.addActionListener(e -> {
-                canvas.isColorPickerMode = true;
+                canvas.activeColorPickerMode();
                 JOptionPane.showMessageDialog(frame, "Режим піпетки активовано! Клацніть на потрібний колір на полотні.");
             });
             toolbar.add(pickerButton);
 
+            // Кнопка виклику колірної палітри
             JButton colorButton = new JButton("Палітра");
             colorButton.setFocusable(false);
             colorButton.setToolTipText("Обрати колір нитки (Клавіша P)");
             colorButton.addActionListener(e -> canvas.chooseColor());
             toolbar.add(colorButton);
 
+            // Кнопка активації інструменту "Заливка"
             JButton fillButton = new JButton("Заливка");
             fillButton.setFocusable(false);
             fillButton.setToolTipText("Залити суміжну область обраним кольором (Клавіша F");
             fillButton.addActionListener(e -> {
-                canvas.isBucketFillMode = true;
+                canvas.activeBucketFillMode();
                 JOptionPane.showMessageDialog(frame, "Режим заливки активовано! Клацніть на область полотна.");
             });
             toolbar.add(fillButton);
 
+            // Кнопка виклику дублювання фрагмента
             JButton duplicateButton = new JButton("Дублювати");
             duplicateButton.setFocusable(false);
             duplicateButton.addActionListener(e -> canvas.duplicateFragment());
@@ -66,6 +84,7 @@ public class Main {
 
             toolbar.addSeparator(new Dimension(15, 0));
 
+            // Налаштування випадаючого списку системної геометричної симетрії
             JLabel symmetryLabel = new JLabel("Симетрія: ");
             symmetryLabel.setFont(new Font("Arial", Font.PLAIN, 12));
             toolbar.add(symmetryLabel);
@@ -81,27 +100,31 @@ public class Main {
             });
             toolbar.add(symmetryComboBox);
 
+            // Пружина динамічного відступу компонентів Swing
             toolbar.add(Box.createHorizontalGlue());
 
+            // Кнопка керування фоновою аудіодоріжкою
             JButton musicButton = new JButton("Музика");
             musicButton.setFocusable(false);
             musicButton.setToolTipText("Увімкнути або вимкнути музику (клавіша M)");
             musicButton.addActionListener(e -> canvas.toggleMusic());
             toolbar.add(musicButton);
 
+            // Кнопка покрокового скасування дій малювання
             JButton undoButton = new JButton("Назад");
             undoButton.setFocusable(false);
             undoButton.setToolTipText("Скасувати останню дію (Ctrl + Z)");
             undoButton.addActionListener(e -> canvas.undo());
             toolbar.add(undoButton);
 
-
+            // Кнопка повного очищення робочої сітки
             JButton clearButton = new JButton("Очистити");
             clearButton.setFocusable(false);
             clearButton.setToolTipText("Очистити полотно (Клавіша C)");
             clearButton.addActionListener(e -> canvas.clearCanvas());
             toolbar.add(clearButton);
 
+            // --- ГЛОБАЛЬНА СИСТЕМА ГАРЯЧИХ КЛАВІШ ---
             JComponent rootPane = frame.getRootPane();
 
             // Ctrl + Z (Скасувати попередній крок)
@@ -155,7 +178,7 @@ public class Main {
             rootPane.getActionMap().put("cancelSelection", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    canvas.isSelectingArea = false;
+                    canvas.cancelActiveModes();
                     canvas.repaint();
                 }
             });
@@ -176,7 +199,7 @@ public class Main {
             rootPane.getActionMap().put("fillAction", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    canvas.isBucketFillMode = true;
+                    canvas.activeBucketFillMode();
                     JOptionPane.showMessageDialog(frame, "Режим заливки активовано! Клацніть на область полотна.");
                 }
             });
@@ -224,11 +247,12 @@ public class Main {
             rootPane.getActionMap().put("pickerAction", new AbstractAction() {
                 @Override
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    canvas.isColorPickerMode = true;
+                    canvas.activeColorPickerMode();
                     JOptionPane.showMessageDialog(frame, "Режим піпетки активовано! Клікніть на потрібний колір на сітці.");
                 }
             });
 
+            // --- ВІЗУАЛІЗАЦІЯ ВІКНА---
             frame.add(toolbar, BorderLayout.NORTH);
             frame.add(canvas, BorderLayout.CENTER);
             frame.setSize(1120, 825);
