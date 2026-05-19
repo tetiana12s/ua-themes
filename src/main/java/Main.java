@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Робота Солтис Тетяни");
+            JFrame frame = new JFrame("Редактор орнаменту - виконала Солтис Тетяни");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLayout(new BorderLayout());
 
@@ -36,6 +36,8 @@ public class Main {
             toolbar.addSeparator(new Dimension(15, 0));
 
             JButton colorButton = new JButton("Палітра");
+            colorButton.setFocusable(false);
+            colorButton.setToolTipText("Обрати колір нитки (Клавіша P)");
             colorButton.setFocusable(false);
             colorButton.addActionListener(e -> canvas.chooseColor());
             toolbar.add(colorButton);
@@ -134,6 +136,15 @@ public class Main {
                     // Просто вимикаємо режим вибору рамки, якщо він був активний
                     canvas.isSelectingArea = false;
                     canvas.repaint();
+                }
+            });
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, 0), "paletteAction");
+            rootPane.getActionMap().put("paletteAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    canvas.chooseColor();
                 }
             });
 
