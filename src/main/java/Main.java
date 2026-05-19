@@ -1,6 +1,8 @@
 import javax.swing.*;
 import javax.swing.SwingUtilities;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 public class Main {
 
@@ -67,6 +69,49 @@ public class Main {
             JButton clearButton = new JButton("Очистити");
             clearButton.addActionListener(e -> canvas.clearCanvas());
             toolbar.add(clearButton);
+
+            JComponent rootPane = frame.getRootPane();
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke
+                    (java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_DOWN_MASK), "undoAction");
+            rootPane.getActionMap().put("undoAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    canvas.undo();
+                }
+            });
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK), "saveAction");
+            rootPane.getActionMap().put("saveAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    canvas.saveToPNG();
+                }
+            });
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0), "musicAction");
+            rootPane.getActionMap().put("musicAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    canvas.toggleMusic();
+                }
+            });
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, 0), "clearAction");
+            rootPane.getActionMap().put("clearAction", new AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    int response = JOptionPane.showConfirmDialog(frame,
+                            "Ви впевнені, що хочете повністю очистити полотно?",
+                            "Підтвердження", JOptionPane.YES_NO_OPTION);
+                        if (response == JOptionPane.YES_OPTION) {
+                            canvas.clearCanvas();
+                        }
+                }
+            });
 
             frame.add(toolbar, BorderLayout.NORTH);
             frame.add(canvas, BorderLayout.CENTER);
