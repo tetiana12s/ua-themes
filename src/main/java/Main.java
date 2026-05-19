@@ -55,6 +55,10 @@ public class Main {
 
             toolbar.add(Box.createHorizontalGlue());
 
+            JButton musicButton = new JButton(("Музика"));
+            musicButton.addActionListener(e -> canvas.toggleMusic());
+            toolbar.add(musicButton);
+
             JButton clearButton = new JButton("Очистити");
             clearButton.addActionListener(e -> canvas.clearCanvas());
             toolbar.add(clearButton);

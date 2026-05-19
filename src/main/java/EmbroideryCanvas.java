@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.AudioInputStream;
 
 public class EmbroideryCanvas extends JPanel {
 
@@ -42,6 +45,38 @@ public class EmbroideryCanvas extends JPanel {
     private int selectionHeight = 0;    // Задана висота фрагмента
     private int currentMouseGridX = 0;  // Поточна координата миші на сітці
     private int currentMouseGridY = 0;
+
+    private Clip audioClip;
+
+    public void toggleMusic() {
+        if (audioClip != null && audioClip.isRunning()) {
+            audioClip.stop();
+            return;
+        }
+
+        if (audioClip != null) {
+            audioClip.loop(Clip.LOOP_CONTINUOUSLY);
+            audioClip.start();
+            return;
+        }
+        try {
+            File musicFile = new File("leleka.wav");
+            if (!musicFile.exists()) {
+                JOptionPane.showMessageDialog(this, "Файл leleka.wav не знайдено!",
+                        "Помилка", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(musicFile);
+            audioClip = AudioSystem.getClip();
+            audioClip.open(audioStream);
+
+            audioClip.loop(Clip.LOOP_CONTINUOUSLY);
+            audioClip.start();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Помилка відтворення музики: " + e.getMessage(),
+                    "Помилка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     public void chooseColor() {
         Color selectedColor =  JColorChooser.showDialog(this, "Оберіть колір нитки", currentColor);
