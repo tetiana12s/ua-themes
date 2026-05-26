@@ -20,12 +20,15 @@ public class Main {
 
         SwingUtilities.invokeLater(() -> {
             // Створення та базове налаштування головного контейнера (вікна)
-            JFrame frame = new JFrame("Редактор орнаменту - виконала Солтис Тетяни");
+            JFrame frame = new JFrame("Редактор орнаменту - Солтис Тетяни");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLayout(new BorderLayout());
 
             // Створюємо полотно для малювання
             EmbroideryCanvas canvas  = new EmbroideryCanvas();
+
+            FileManager fileManager = new FileManager(canvas);
+            ToolManager toolManager = new ToolManager(canvas);
 
             // --- НАЛАШТУВАННЯ ПАНЕЛІ ІНСТРУМЕНТІВ (JToolBar) ---
             JToolBar toolbar = new JToolBar();
@@ -38,13 +41,13 @@ public class Main {
             JButton saveButton = new JButton("Зберегти");
             saveButton.setFocusable(false);
             saveButton.setToolTipText("Зберегти вишивку як зображення PNG (Ctrl + S)");
-            saveButton.addActionListener(e -> canvas.saveToPNG());
+            saveButton.addActionListener(e -> fileManager.saveToPNG());
             toolbar.add(saveButton);
 
             // Кнопка Імпорту з PNG
             JButton openButton = new JButton("Відкрити");
             openButton.setFocusable(false);
-            openButton.addActionListener(e -> {canvas.openFromPNG();});
+            openButton.addActionListener(e -> {fileManager.openFromPNG();});
             toolbar.add(openButton);
 
             toolbar.addSeparator(new Dimension(15, 0));
@@ -63,7 +66,7 @@ public class Main {
             JButton colorButton = new JButton("Палітра");
             colorButton.setFocusable(false);
             colorButton.setToolTipText("Обрати колір нитки (Клавіша P)");
-            colorButton.addActionListener(e -> canvas.chooseColor());
+            colorButton.addActionListener(e -> toolManager.chooseColor());
             toolbar.add(colorButton);
 
             // Кнопка активації інструменту "Заливка"
@@ -79,7 +82,7 @@ public class Main {
             // Кнопка виклику дублювання фрагмента
             JButton duplicateButton = new JButton("Дублювати");
             duplicateButton.setFocusable(false);
-            duplicateButton.addActionListener(e -> canvas.duplicateFragment());
+            duplicateButton.addActionListener(e -> toolManager.duplicateFragment());
             toolbar.add(duplicateButton);
 
             toolbar.addSeparator(new Dimension(15, 0));
@@ -143,7 +146,7 @@ public class Main {
             rootPane.getActionMap().put("saveAction", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    canvas.saveToPNG();
+                    fileManager.saveToPNG();
                 }
             });
 
@@ -189,7 +192,7 @@ public class Main {
             rootPane.getActionMap().put("paletteAction", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    canvas.chooseColor();
+                    toolManager.chooseColor();
                 }
             });
 
